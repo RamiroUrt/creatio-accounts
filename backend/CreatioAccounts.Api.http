@@ -1,0 +1,20 @@
+@CreatioAccounts.Api_HostAddress = http://localhost:5113
+
+GET {{CreatioAccounts.Api_HostAddress}}/health
+Accept: application/json
+
+###
+
+GET {{CreatioAccounts.Api_HostAddress}}/api/accounts?search=a&page=1&pageSize=3
+Accept: application/json
+
+###
+
+POST {{CreatioAccounts.Api_HostAddress}}/api/accounts
+Content-Type: application/json
+
+{
+  "name": "Cuenta de prueba (HTTP file)"
+}
+
+###

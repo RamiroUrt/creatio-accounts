@@ -1,0 +1,21 @@
+# Credenciales y secretos
+.env
+*.env.local
+*.env.*.local
+
+# .NET
+bin/
+obj/
+*.user
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# Sistema
+Thumbs.db
+.DS_Store
