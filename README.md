@@ -1,3 +1,5 @@
+<p align="center"><img src="frontend/public/alkemia-logo.png" alt="Alkemia" width="160"></p>
+
 # Cuentas · Creatio (Prueba técnica Alkemia)
 
 Resolví la prueba técnica con una app web que consume la **API OData de Creatio** autenticando contra el **Identity Service** con **OAuth 2.0 client credentials**. Muestra un listado de cuentas (Accounts) con búsqueda y paginación resueltas del lado del servidor.
@@ -133,6 +135,14 @@ Fuentes consultadas:
 - No hay tests automatizados (los servicios están detrás de interfaces `ICreatioTokenService` / `ICreatioODataService`, listas para mockear).
 - No hay validación de duplicados ni normalización de nombre al crear cuentas.
 - Con más tiempo: `authorization code + PKCE` para usuarios humanos, logs estructurados, contenedor Docker para backend y frontend, CI, reintento con `jitter` para 429/5xx y un health-check dedicado del Identity Service.
+
+## Capturas
+
+![Listado de cuentas](capturas/accounts-list.png)
+
+![Búsqueda y filtro por tipo](capturas/accounts-search.png)
+
+![Formulario de alta de cuenta](capturas/company.png)
 
 ## Variables de entorno
 
