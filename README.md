@@ -1,12 +1,12 @@
 # Cuentas · Creatio (Prueba técnica Alkemia)
 
-App web mínima que consume la **API OData de Creatio** autenticando contra el **Identity Service** con **OAuth 2.0 client credentials**, y muestra un listado de cuentas (Accounts) con búsqueda y paginación reales contra el servidor.
+Resolví la prueba técnica con una app web que consume la **API OData de Creatio** autenticando contra el **Identity Service** con **OAuth 2.0 client credentials**. Muestra un listado de cuentas (Accounts) con búsqueda y paginación resueltas del lado del servidor.
 
 - **Backend:** ASP.NET Core Web API (`.NET 9`) — `backend/`
 - **Frontend:** React + Vite + TypeScript + CSS nativo — `frontend/`
 - **Versión de Creatio:** v2026.5.6
 - **Instancia:** https://189637-crm-bundle.creatio.com
-- **Bitácora de la integración:** [`BITACORA.md`](BITACORA.md)
+- **Bitácora de la integración:** [`BITACORA.md`](BITACORA.md) — ahí cuento lo que me costó y cómo lo resolví.
 
 ---
 
@@ -43,7 +43,9 @@ frontend/
   src/global/style.css       tema nativo (paleta del logo) y clases de UI
 ```
 
-## Cómo levantarlo localmente
+---
+
+## Cómo levantar todo desde cero
 
 ### 1. Configurar credenciales
 
@@ -59,7 +61,11 @@ CREATIO_ODATA_BASEPATH=/0/odata
 
 También se pueden definir como variables de entorno reales con esos mismos nombres. El backend valida que estén completas al arrancar.
 
+> Las credenciales corresponden a la instancia provista con el challenge y no viajan en el repo por seguridad.
+
 ### 2. Backend
+
+Desde la raíz del repo:
 
 ```
 cd backend
@@ -75,23 +81,27 @@ Queda en `http://localhost:5113`. Endpoints:
 
 ### 3. Frontend
 
+Desde la raíz del repo, abrí otro terminal y:
+
 ```
 cd frontend
 npm install
 npm run dev
 ```
 
-Abre `http://localhost:5173`. Vite hace proxy de `/api` y `/health` hacia `http://localhost:5113` (no hace falta CORS en dev).
+Abrí `http://localhost:5173`. Vite hace proxy de `/api` y `/health` hacia `http://localhost:5113` (no hace falta CORS en dev). Con el backend corriendo, el listado debería cargar con las cuentas de la instancia.
 
 ---
 
 ## Cómo se configuró el acceso OAuth 2.0 (client credentials)
 
+La primera pared que tuve que atravesar fue conseguir que el usuario técnico pudiera consumir OData; sin los permisos correctos, todos los request devolvían *"El usuario actual no tiene permisos suficientes para usar OData"*. Esto es lo que hice:
+
 1. **System Designer** → **OAuth 2.0 integrated applications** (bloque _Import and integration_).
 2. **New** → tipo **Server-to-server (client credentials)**.
-3. Se completó Nombre/URL/Descripción y se dejó activado **Create separate technical user**.
-4. Creatio generó **Client Id** y **Client secret**; se guardaron fuera del repositorio (`.env` + variables de entorno).
-5. Se asignaron permisos al **usuario técnico**: operaciones **Access to OData** y **View any data** (sin eso, cualquier request devuelve `El usuario actual no tiene permisos suficientes para usar OData`).
+3. Completar Nombre/URL/Descripción y dejar activado **Create separate technical user**.
+4. Creatio genera **Client Id** y **Client secret**; se guardan fuera del repositorio (`.env` + variables de entorno).
+5. Asignar permisos al **usuario técnico**: operaciones **Access to OData** y **View any data** (sin eso, cualquier request devuelve `El usuario actual no tiene permisos suficientes para usar OData`).
 6. El token se pide en `POST {IdentityServiceUrl}/connect/token` con `grant_type=client_credentials` (form-urlencoded: `client_id`, `client_secret`).
 
 > La URL del Identity Service la da el system setting **`OAuth20IdentityServerUrl`** (_Authorization server Url for OAuth 2.0 integrations_).
@@ -112,8 +122,8 @@ Fuentes consultadas:
 - **Paginación y búsqueda 100 % en servidor.** Se traduce `page`/`pageSize` a `$top`/`$skip`, la búsqueda a `$filter=contains(Name,'...')`, y se pide `$count=true` para el total real. El frontend solo corta visualmente la página que recibe.
 - **Solo los campos mostrados.** `$select=Id,Name,TypeId,Type` en lugar del registro completo.
 - **Lookup resuelto legible.** `$expand=Type` devuelve el tipo de cuenta (p. ej. "Cliente", "Contratista") sin exponer el GUID a cara o cruz.
-- **Filtro por tipo de cuenta.** `type` se traduce a `$filter=Type/Name eq '...'` (el `$filter=TypeId eq guid'…'` está soportado, pero la versión de Creatio no lo acepta: `TypeId` viaja como `Edm.Guid` y el parser no reconoce el literal `guid'…'`; filtrar por la propiedad navegacional `Type/Name` sí resuelve).
-- **Transporte separado de la lógica.** `Integration/CreatioODataClient` hace HTTP/bearer/retry 401/parseo; `Services/CreatioODataService` solo arma queries y DTOs. Así quedan listas para mockear y testear por separado.
+- **Filtro por tipo de cuenta.** `type` se traduce a `$filter=Type/Name eq '...'`. El `$filter=TypeId eq guid'…'` resulta que no lo acepta la versión: `TypeId` viaja como `Edm.Guid` y el parser no reconoce el literal `guid'…'`; filtrar por la propiedad navegacional `Type/Name` sí resuelve.
+- **Transporte separado de la lógica.** `Integration/CreatioODataClient` hace HTTP/bearer/retry 401/parseo; `Services/CreatioODataService` solo arma queries y DTOs. Quedaron listas para mockear y testear por separado.
 - **Errores visibles.** El backend mapea fallos de Creatio a `{ error: { code, message } }` con middleware global; el frontend los muestra en un banner (listado y alta).
 - **Config por `.env`/variables de entorno** con un loader propio liviano (sin dependencias extra) y validación al arranque.
 - **CORS no necesario en dev** gracias al proxy de Vite; igualmente se habilita en Development por comodidad.
