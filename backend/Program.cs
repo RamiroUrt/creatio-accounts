@@ -5,6 +5,14 @@ using CreatioAccounts.Api.Infrastructure.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 var envValues = EnvFileLoader.LoadFrom();
+foreach (var (key, value) in EnvFileLoader.FromEnvironment())
+{
+    if (!envValues.ContainsKey(key))
+    {
+        envValues[key] = value;
+    }
+}
+
 if (envValues.Count > 0)
 {
     builder.Configuration.AddInMemoryCollection(envValues);

@@ -65,6 +65,22 @@ public static class EnvFileLoader
         return values;
     }
 
+    public static Dictionary<string, string?> FromEnvironment()
+    {
+        var result = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var key in Environment.GetEnvironmentVariables().Keys.Cast<string>())
+        {
+            var configKey = ToConfigKey(key);
+            if (configKey is not null)
+            {
+                result[configKey] = Environment.GetEnvironmentVariable(key);
+            }
+        }
+
+        return result;
+    }
+
     private static string? ToConfigKey(string key)
     {
         if (key.Contains("__", StringComparison.Ordinal))
