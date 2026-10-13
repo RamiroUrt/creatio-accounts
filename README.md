@@ -161,3 +161,4 @@ Nota: el back puede tardar ~30-60s en el primer arranque (free tier).
 | `CREATIO_CLIENT_SECRET` | Client secret de la integraciÃ³n OAuth. |
 | `CREATIO_ODATA_BASEPATH` | Base del servicio OData (default `/0/odata`). |
 | `VITE_API_BASE_URL` (opcional) | Base de la API si el frontend no usa el proxy (default `/api`). |
+
